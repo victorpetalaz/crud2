@@ -4,9 +4,9 @@ API RESTful simples para gerenciar um inventário de jogos usando Flask e SQLite
 
 ## Setup e Inicialização
 
-Antes de testar a API, instale as dependências e inicie o banco de dados (isso criará o arquivo `.db` e a tabela) e o servidor:
+Antes de testar a API, instale as dependências e o servidor:
 
-```bash
+  No terminal do VSCode:
 pip install flask
 python init_db.py
 python app.py
