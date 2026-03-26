@@ -7,8 +7,8 @@ def init_db():
         CREATE TABLE IF NOT EXISTS games (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
-            plat TEXT NOT NULL,
-            yr INTEGER NOT NULL
+            platform TEXT NOT NULL,
+            year INTEGER NOT NULL
         )
     ''')
     conn.commit()

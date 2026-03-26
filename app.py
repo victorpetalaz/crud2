@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 import sqlite3
+import init_db
 
 app = Flask(__name__)
 
@@ -13,6 +14,7 @@ def exec_q(q, *args, fetch=False, commit=False):
         c.execute(q, args)
         if commit:
             conn.commit()
+            res = c.rowcount 
         if fetch:
             res = c.fetchall()
     finally:
@@ -27,44 +29,47 @@ def get_games(id=None):
         game = exec_q("SELECT * FROM games WHERE id = ?", id, fetch=True)
         if game:
             return jsonify(dict(game[0])), 200
-        return jsonify({"err": "Not found"}), 404
-
+        return jsonify({"error": "Not found :/"}), 404
     data = exec_q("SELECT * FROM games", fetch=True)
     return jsonify([dict(i) for i in data]), 200
 
 @app.route('/games', methods=['POST'])
 def add_game():
     d = request.get_json()
+    if not d or not all(k in d for k in ("title", "platform", "year")):
+        return jsonify({"error ": "Missing data (title, platform, year required)"}), 400
     exec_q(
-        "INSERT INTO games (title, plat, yr) VALUES (?, ?, ?)",
-        d.get('title'), d.get('plat'), d.get('yr'),
+        "INSERT INTO games (title, platform, year) VALUES (?, ?, ?)",
+        d['title'], d['platform'], d['year'],
         commit=True
     )
-    return jsonify({"msg": "Created"}), 201
+    return jsonify({"return!": "created :)"}), 201
 
 @app.route('/games/<int:id>', methods=['PUT'])
 def upd_game(id):
     d = request.get_json()
-    
-    exists = exec_q("SELECT id FROM games WHERE id = ?", id, fetch=True)
-    if not exists:
-        return jsonify({"err": "Not found"}), 404
+    if not d or not all(k in d for k in ("title", "platform", "year")):
+        return jsonify({"error!": "missing data :/"}), 400
 
-    exec_q(
-        "UPDATE games SET title = ?, plat = ?, yr = ? WHERE id = ?",
-        d.get('title'), d.get('plat'), d.get('yr'), id,
+    affected_rows = exec_q(
+        "UPDATE games SET title = ?, platform = ?, year = ? WHERE id = ?",
+        d['title'], d['platform'], d['year'], id,
         commit=True
     )
+    
+    if affected_rows == 0:
+        return jsonify({"error!": "not found :/"}), 404
     return '', 204
 
 @app.route('/games/<int:id>', methods=['DELETE'])
 def del_game(id):
-    exists = exec_q("SELECT id FROM games WHERE id = ?", id, fetch=True)
-    if not exists:
-        return jsonify({"err": "Not found"}), 404
+    affected_rows = exec_q("DELETE FROM games WHERE id = ?", id, commit=True)
+    
+    if affected_rows == 0:
+        return jsonify({"error!": "not found :/"}), 404
 
-    exec_q("DELETE FROM games WHERE id = ?", id, commit=True)
-    return jsonify({"msg": "Deleted"}), 200
+    return jsonify({"return": "deleted!"}), 200
 
 if __name__ == '__main__':
+    init_db.init_db()
     app.run(debug=True)
