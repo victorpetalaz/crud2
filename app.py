@@ -1,26 +1,7 @@
 from flask import Flask, jsonify, request
-import sqlite3
-import init_db
+from init_db import exec_q, init_db
 
 app = Flask(__name__)
-
-def exec_q(q, *args, fetch=False, commit=False):
-    conn = sqlite3.connect('games.db')
-    conn.row_factory = sqlite3.Row
-    c = conn.cursor()
-    res = None
-    
-    try:
-        c.execute(q, args)
-        if commit:
-            conn.commit()
-            res = c.rowcount 
-        if fetch:
-            res = c.fetchall()
-    finally:
-        conn.close()
-    
-    return res
 
 @app.route('/games', methods=['GET'])
 @app.route('/games/<int:id>', methods=['GET'])
@@ -71,5 +52,5 @@ def del_game(id):
     return jsonify({"return": "deleted!"}), 200
 
 if __name__ == '__main__':
-    init_db.init_db()
+    init_db()
     app.run(debug=True)
